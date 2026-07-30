@@ -1,4 +1,4 @@
-// js/app.js - Integración de UI, almacenamiento y cálculo
+// js/app.js - Integración del Calendario Visual, UI y Almacenamiento
 
 document.addEventListener('DOMContentLoaded', () => {
     // Referencias al DOM
@@ -7,77 +7,78 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyList = document.getElementById('history-list');
     const mensajeNotificacion = document.getElementById('mensajeNotificacion');
     
-    const cycleForm = document.getElementById('cycle-form');
     const isIrregularCheckbox = document.getElementById('is-irregular');
     const irregularOptions = document.getElementById('irregular-options');
     const minCycleInput = document.getElementById('min-cycle');
     const maxCycleInput = document.getElementById('max-cycle');
-    const checkDateInput = document.getElementById('check-date');
+
+    const monthYearLabel = document.getElementById('calendar-month-year');
+    const calendarDays = document.getElementById('calendar-days');
+    const btnPrev = document.getElementById('prev-month');
+    const btnNext = document.getElementById('next-month');
     
     const statusCard = document.getElementById('status-card');
     const statusText = document.getElementById('status-text');
 
-    // Función auxiliar segura para obtener "YYYY-MM-DD" local
-    function getTodayString() {
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
+    // Estado del mes visualizado (Inicia en el mes y año actual)
+    let currentDate = new Date();
 
-    // Inicializar fecha de consulta a HOY de forma predeterminada
-    const todayStr = getTodayString();
-    if (checkDateInput) {
-        checkDateInput.value = todayStr;
-    }
-
-    // Cargar datos por primera vez si el historial está vacío
+    // Inicializar datos predeterminados y renderizar
     initDefaultData();
-
-    // Renderizar historial y actualizar interfaz
     refreshUI();
+    renderCalendar();
 
-    // Mostrar / ocultar opciones de ciclo irregular
-    if (isIrregularCheckbox) {
-        isIrregularCheckbox.addEventListener('change', (e) => {
-            irregularOptions.style.display = e.target.checked ? 'block' : 'none';
+    // Eventos para cambiar de mes
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
         });
     }
+
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+    }
+
+    // Reactividad a cambios en parámetros de ciclo
+    if (isIrregularCheckbox) {
+        isIrregularCheckbox.addEventListener('change', (e) => {
+            if (irregularOptions) {
+                irregularOptions.style.display = e.target.checked ? 'block' : 'none';
+            }
+            renderCalendar();
+        });
+    }
+
+    if (minCycleInput) minCycleInput.addEventListener('input', () => renderCalendar());
+    if (maxCycleInput) maxCycleInput.addEventListener('input', () => renderCalendar());
 
     // Evento: Agregar nueva fecha al historial
     if (addPeriodForm) {
         addPeriodForm.addEventListener('submit', (e) => {
-            e.preventDefault(); // Detiene recarga de página obligatoriamente
-            
+            e.preventDefault();
             const dateVal = newPeriodInput.value;
+            
             if (!dateVal) {
                 mostrarNotificacion('Por favor selecciona una fecha válida.', 'error');
                 return;
             }
 
-            const guardado = Storage.addPeriod(dateVal);
-            
-            if (guardado) {
+            if (Storage.addPeriod(dateVal)) {
                 newPeriodInput.value = '';
-                mostrarNotificacion('¡Fecha agregada correctamente al historial!', 'exito');
+                mostrarNotificacion('¡Fecha agregada correctamente!', 'exito');
                 refreshUI();
-                calculateAndDisplay();
+                renderCalendar();
             } else {
-                mostrarNotificacion('Error: Esta fecha ya está registrada en el historial.', 'error');
+                mostrarNotificacion('Esta fecha ya está registrada en el historial.', 'error');
             }
         });
     }
 
-    // Evento: Calcular estado de la fecha seleccionada
-    if (cycleForm) {
-        cycleForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            calculateAndDisplay();
-        });
-    }
-
-    // Muestra notificaciones visuales en el div #mensajeNotificacion
+    // Notificaciones de usuario
     function mostrarNotificacion(texto, tipo) {
         if (!mensajeNotificacion) return;
 
@@ -94,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
             mensajeNotificacion.style.border = '1px solid #f5c6cb';
         }
 
-        // Ocultar mensaje después de 3.5 segundos
         setTimeout(() => {
             mensajeNotificacion.style.display = 'none';
         }, 3500);
@@ -127,30 +127,43 @@ document.addEventListener('DOMContentLoaded', () => {
             historyList.appendChild(li);
         });
 
-        // Listeners para botones eliminar
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const dateToDelete = e.target.getAttribute('data-date');
                 Storage.removePeriod(dateToDelete);
                 mostrarNotificacion('Fecha eliminada del historial.', 'exito');
                 refreshUI();
-                calculateAndDisplay();
+                renderCalendar();
             });
         });
 
         const stats = Storage.calculateCycleLengths();
         if (stats.hasEnoughData) {
-            minCycleInput.value = stats.minCycle;
-            maxCycleInput.value = stats.maxCycle;
+            if (minCycleInput) minCycleInput.value = stats.minCycle;
+            if (maxCycleInput) maxCycleInput.value = stats.maxCycle;
         }
     }
 
-    function calculateAndDisplay() {
+    // Renderiza el mes completo en la cuadrícula
+    function renderCalendar() {
         const periods = Storage.getPeriods();
+        calendarDays.innerHTML = '';
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const monthNames = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
         
+        if (monthYearLabel) {
+            monthYearLabel.textContent = `${monthNames[month]} ${year}`;
+        }
+
         if (periods.length === 0) {
             statusCard.className = 'status-card';
-            statusText.textContent = 'Por favor registra al menos una fecha de inicio de período.';
+            statusText.textContent = 'Registra al menos un período para construir el calendario.';
             return;
         }
 
@@ -158,24 +171,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const isIrregular = isIrregularCheckbox ? isIrregularCheckbox.checked : true;
         const minCycle = parseInt(minCycleInput.value, 10) || 26;
         const maxCycle = parseInt(maxCycleInput.value, 10) || 31;
-        const targetDate = checkDateInput.value || todayStr;
 
         const ranges = Calculator.calculateRanges(lastPeriodDate, isIrregular, minCycle, maxCycle);
-        const currentStatus = Calculator.getDayStatus(targetDate, ranges);
 
-        const fertileStartStr = Calculator.toISOStringLocal(ranges.firstFertileDay);
-        const fertileEndStr = Calculator.toISOStringLocal(ranges.lastFertileDay);
-        const nextPeriodStr = Calculator.toISOStringLocal(ranges.nextPeriodDay);
+        // Primer día del mes (0 = Domingo) y total de días
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
 
-        statusCard.className = `status-card status-${currentStatus.color}`;
-        statusText.innerHTML = `
-            <strong>Estado para el ${targetDate}:</strong><br>
-            <span class="status-title">${currentStatus.label}</span><br><br>
-            <small>
-                Último período: <strong>${lastPeriodDate}</strong><br>
-                Ventana de riesgo (fértil): <strong>${fertileStartStr} al ${fertileEndStr}</strong><br>
-                Próximo período estimado: <strong>${nextPeriodStr}</strong>
-            </small>
-        `;
+        // Celdas vacías al inicio para cuadrar los días de la semana
+        for (let i = 0; i < firstDayIndex; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'day-cell empty';
+            calendarDays.appendChild(emptyCell);
+        }
+
+        // Celdas por cada día del mes
+        for (let day = 1; day <= totalDays; day++) {
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            cell.textContent = day;
+
+            const formattedMonth = String(month + 1).padStart(2, '0');
+            const formattedDay = String(day).padStart(2, '0');
+            const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+
+            const dayStatus = Calculator.getDayStatus(dateStr, ranges);
+            cell.classList.add(`status-${dayStatus.status}`);
+
+            // Clic sobre el día para ver la descripción
+            cell.addEventListener('click', () => {
+                document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+                cell.classList.add('selected');
+
+                statusCard.className = `status-card status-${dayStatus.color}`;
+                statusText.innerHTML = `
+                    <strong>Fecha seleccionada: ${dateStr}</strong><br>
+                    <span class="status-title">${dayStatus.label}</span>
+                `;
+            });
+
+            calendarDays.appendChild(cell);
+        }
     }
 });

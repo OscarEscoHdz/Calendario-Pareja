@@ -22,19 +22,18 @@
                     <input type="date" id="new-period-date" required>
                 </div>
                 <button type="submit" id="btn-add-period">Añadir al Historial</button>
-                <!-- Mensaje de notificación -->
                 <div id="mensajeNotificacion" style="display: none; padding: 10px; margin-top: 10px; border-radius: 5px; text-align: center; font-weight: bold;"></div>
             </form>
 
             <div class="history-container">
                 <h3>Historial de Registros</h3>
                 <ul id="history-list" class="history-list">
-                    <!-- Las fechas guardadas se renderizan dinámicamente aquí -->
+                    <!-- Registros dinámicos -->
                 </ul>
             </div>
         </section>
 
-        <!-- Configuración de Cálculo -->
+        <!-- Configuración de Parámetros -->
         <section class="config-panel">
             <h2>Parámetros del Ciclo</h2>
             <form id="cycle-form">
@@ -52,27 +51,37 @@
                     <label for="max-cycle">Duración ciclo más largo (días):</label>
                     <input type="number" id="max-cycle" value="31" min="15" max="45">
                 </div>
-
-                <div class="form-group">
-                    <label for="check-date">Consultar fecha específica:</label>
-                    <input type="date" id="check-date">
-                </div>
-
-                <button type="submit" id="btn-calculate">Calcular Estado</button>
             </form>
         </section>
 
-        <!-- Resultados -->
+        <!-- Vista de Calendario Visual -->
         <section class="results-panel">
-            <h2>Estado para la Fecha Seleccionada</h2>
-            <div id="status-card" class="status-card">
-                <p id="status-text">Registra al menos una fecha o presiona calcular.</p>
+            <div class="calendar-header">
+                <button id="prev-month" type="button" class="btn-nav">&lt;</button>
+                <h2 id="calendar-month-year">Mes Año</h2>
+                <button id="next-month" type="button" class="btn-nav">&gt;</button>
             </div>
-            
+
+            <div class="calendar-grid">
+                <div class="day-name">Dom</div>
+                <div class="day-name">Lun</div>
+                <div class="day-name">Mar</div>
+                <div class="day-name">Mié</div>
+                <div class="day-name">Jue</div>
+                <div class="day-name">Vie</div>
+                <div class="day-name">Sáb</div>
+                <div id="calendar-days" class="calendar-days-container"></div>
+            </div>
+
             <div class="legend">
-                <span class="badge badge-safe">🟢 Bajo Riesgo</span>
+                <span class="badge badge-safe">🟢 Seguro</span>
                 <span class="badge badge-risk">🟠 Riesgo / Fértil</span>
                 <span class="badge badge-period">🔴 Período / Estimado</span>
+            </div>
+
+            <!-- Detalle de la fecha seleccionada -->
+            <div id="status-card" class="status-card" style="margin-top: 15px;">
+                <p id="status-text">Selecciona un día del calendario para ver el detalle.</p>
             </div>
         </section>
     </div>

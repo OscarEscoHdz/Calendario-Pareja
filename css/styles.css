@@ -1,62 +1,225 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background-color: #f4f6f9;
-    color: #333;
+    background-color: #f8fafc;
+    color: #334155;
+    display: flex;
+    justify-content: center;
     padding: 20px;
 }
 
 .container {
     max-width: 500px;
-    margin: 0 auto;
-    background: #fff;
-    padding: 24px;
+    width: 100%;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    color: #1e293b;
+}
+
+header p {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.config-panel, .results-panel {
+    background: #ffffff;
+    padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: #334155;
 }
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
 }
 
 label {
-    display: block;
-    margin-bottom: 6px;
+    font-size: 0.85rem;
     font-weight: 600;
+    margin-bottom: 5px;
+    color: #475569;
 }
 
 input[type="date"], input[type="number"] {
-    width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #cbd5e1;
     border-radius: 6px;
-    box-sizing: border-box;
+    font-size: 0.95rem;
+    outline: none;
 }
 
 button {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     background-color: #4f46e5;
     color: white;
     border: none;
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
-.status-card {
-    padding: 16px;
-    border-radius: 8px;
+button:hover {
+    background-color: #4338ca;
+}
+
+.history-container {
+    margin-top: 15px;
+}
+
+.history-list {
+    list-style: none;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.btn-delete {
+    width: auto;
+    padding: 4px 8px;
+    background-color: #ef4444;
+    font-size: 0.75rem;
+}
+
+.btn-delete:hover {
+    background-color: #dc2626;
+}
+
+/* --- CALENDARIO ESTILOS --- */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.btn-nav {
+    width: 35px;
+    height: 35px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
     text-align: center;
-    margin-top: 16px;
 }
 
-.status-green { background-color: #d1fae5; color: #065f46; }
-.status-orange { background-color: #ffedd5; color: #9a3412; }
-.status-red { background-color: #fee2e2; color: #991b1b; }
+.day-name {
+    font-weight: bold;
+    padding: 8px 0;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.calendar-days-container {
+    display: contents;
+}
+
+.day-cell {
+    padding: 10px 0;
+    border-radius: 8px;
+    background-color: #f1f5f9;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.1s, border 0.1s;
+    user-select: none;
+}
+
+.day-cell:hover {
+    transform: scale(1.05);
+}
+
+.day-cell.empty {
+    background-color: transparent;
+    cursor: default;
+}
+
+/* Colores según el estado */
+.day-cell.status-SAFE {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.day-cell.status-RISK {
+    background-color: #d2e010;
+    color: #9a3412;
+    font-weight: bold;
+}
+
+.day-cell.status-PERIOD, 
+.day-cell.status-NEXT_PERIOD {
+    background-color: #be4040;
+    color: #991b1b;
+    font-weight: bold;
+}
+
+.day-cell.selected {
+    outline: 2px solid #4f46e5;
+}
 
 .legend {
     display: flex;
     justify-content: space-around;
-    margin-top: 20px;
-    font-size: 0.85rem;
+    margin-top: 15px;
+    font-size: 0.8rem;
+}
+
+.status-card {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+.status-card.status-red {
+    border-left: 5px solid #ef4444;
+}
+
+.status-card.status-orange {
+    border-left: 5px solid #f9e216;
+}
+
+.status-card.status-green {
+    border-left: 5px solid #10b981;
+}
+
+.status-title {
+    font-size: 1.1rem;
+    font-weight: bold;
 }
